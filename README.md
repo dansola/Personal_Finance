@@ -20,3 +20,5 @@ Tool for calculating and forcasting personal investments and liabilities.
 
 **Plotting:**
 - Plot value of an account or stock price
+
+**Future:** Bonds, GICs, Real Estate, House Mortgages, Car Loans, Student Loans, Tax Rate (based on alberta tax laws), Taxed and Untaxed Income
