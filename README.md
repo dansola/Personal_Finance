@@ -16,9 +16,17 @@ Tool for calculating and forcasting personal investments and liabilities.
 - Allows for annual deposits and withdrawals (with commission)
 - Allows for monthly deposits and withdrawals (with commission)
 
-## Utils
+**GIC (guaranteed investment certificate):**
+-Balance is compounded annually
 
-**Plotting:**
-- Plot value of an account or stock price
+## Other Features
 
-**Future:** Bonds, GICs, Real Estate, House Mortgages, Car Loans, Student Loans, Tax Rate (based on alberta tax laws), Taxed and Untaxed Income
+**Plotting (utils):**
+- Plot value of a single asset
+- Funds can be reinvested at the end of the maturity period
+- Funds only available at the end of the maturity period.  If the funds are reinvested, they are not availabe until the next maturity.
+
+**Collective Compound:**
+- Allows for multiple assets (currently bank accounts, stocks, and GICs) to be compounded at the same time and combined to a collective portfolio value.
+
+**Future:** Bonds, Real Estate, House Mortgages, Car Loans, Student Loans, Tax Rate (based on alberta tax laws), Taxed and Untaxed Income
