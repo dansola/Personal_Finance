@@ -35,7 +35,7 @@ class BankAccount:
                 self.broke = True
                 self.broke_time = m
 
-        return values
+        return np.array(values)
 
     def summary(self):
 
@@ -48,12 +48,88 @@ class BankAccount:
 class Account:
     def __init__(self, cash=0, fee=0, tax_free=True):
         self.cash = cash
-        self.fee = fee  # TODO: incorporate fee and tax
+        self.fee = fee  # TODO: incorporate tax ?? in what situatios are shareholders automatially taxed? ex. withholdingn tax
         self.tax_free = tax_free
         self.stock = self.createStock()
+        self.fee_applied = False
 
     def createStock(self):
         return Account.Stock(self)
+
+    def createGic(self):
+        return Account.Gic(self)
+
+    # GIC
+    class Gic:
+        """
+        balance: amount of money in the GIC
+        interest_rate: annual interest rate compounded annually
+        maturity: number of years for the GIC to mature (i.e. the funds are available)
+        is_reinvest: weather or not the funds are reinvested once the GIC matures
+        name: name of the GIC
+        availability: weather or not the funds are available to the owner
+        note: fees do not apply to GICs
+        """
+
+        def __init__(self, balance, interest_rate, maturity, is_reinvest=True, name='this GIC', availability='are not'):
+            self.balance = balance
+            self.interest_rate = interest_rate
+            self.maturity = maturity
+            self.is_reinvest = is_reinvest
+            self.name = name
+            self.availability = availability
+
+        # project monthly balance of the GIC and return a list of values for a certain time into the future
+        def compound(self, years=0, months=0):
+            values = []
+            total_months = int((years * 12) + months)
+            month = 0
+            compounding_years = np.floor(total_months / 12)
+
+            # raise error if the compounding period is less than a year since funds cannot compound
+            if total_months < 12:
+                raise Exception(f'{self.name} will not compound since {months} months is less than a year.')
+
+            else:
+                if self.is_reinvest:
+                    # check if funds are available by seeing if the compounding time is a factor of the maturity
+                    if ((total_months / 12) / self.maturity).is_integer():
+                        self.availability = 'are'
+
+                    # compound interest annually but store balance monthly
+                    for m in range(int(compounding_years * 12)):
+                        values.append(self.balance)
+                        if month == 11:
+                            self.balance *= (1 + self.interest_rate / 100)
+                            month = -1
+                        month += 1
+                    # balance is stored for the remaining months
+                    for i in range(total_months - m):
+                        values.append(self.balance)
+                else:
+                    # check if funds are available. since funds are not reinvested, they are available after maturity
+                    if total_months >= self.maturity * 12:
+                        self.availability = 'are'
+                    # compound interest annually but store balance monthly
+                    year = 0
+                    for m in range(int(total_months) + 1):
+                        # only compound before maturity
+                        if year < self.maturity:
+                            values.append(self.balance)
+                            if month == 11:
+                                self.balance *= (1 + self.interest_rate / 100)
+                                month = -1
+                                year += 1
+                            month += 1
+                        # constant balance is stored for remaining time
+                        else:
+                            values.append(self.balance)
+
+            return np.array(values)
+
+        def summary(self):
+            print(f'The total value of {self.name} is ${self.balance:.2f}.')
+            print(f'These funds {self.availability} available.')
 
     # stock
     class Stock:
@@ -114,13 +190,13 @@ class Account:
             month = 0
             original_cash = self.account.cash
 
-            # determine amount of volatility TODO: change this to apply to stock price based on standard deviation, also add low probability major events (2008)
+            # determine amount of volatility
             if self.volatility == 'low':
                 vol = 0.01
             elif self.volatility == 'med':
-                vol = 0.03
+                vol = 0.02
             elif self.volatility == 'high':
-                vol = 0.05
+                vol = 0.04
 
             # every month update the value stock price, holding price (aggregate stocks), and the amount of cash
             # produced by this stock.
@@ -160,6 +236,8 @@ class Account:
                 # apply annual withdrawals or deposits as well as dividend growth
                 if month == 12:
                     self.dividend *= (1 + (self.dividend_percent_growth / 100))
+                    if self.account.fee >= 0 and not self.account.fee_applied:
+                        self.account.cash -= self.account.fee
                     if annual_deposit != 0:
                         Account.ChangeShares.add(self, annual_deposit)
                     if annual_withdrawal != 0:
@@ -203,6 +281,7 @@ class Account:
         subtract: If cash is present in the account, take money from the cash pool.  Remaining money will be
                   collected from selling shares.  If no cash is present, all money will be collected from selling shares
         """
+
         # add stocks or cash to the account depending on if a DRIP is in place.  If no DRIP is in place and the amount
         # added is less than commission, an error will be raised.
         def add(self, amount, is_drip=False):
@@ -238,18 +317,67 @@ class Account:
                 raise Exception(f'Amount withdrawing from {self.name} is less than the commission to buy a stock')
 
 
-a = Account()
-s = a.Stock(a, name='FTS.TO', shares=150, price=49.50, dividend=3.64, annual_growth=5, volatility='med', drip=False,
-            dividend_percent_growth=2)
-values, prices, cash = s.compound(years=39)
-
-s.summary()
-
-import utils as ut
+# general compound of all accounts, though monthy/annual withdrawals and deposits cannot apply
+# arguments can be from the following classes: BankAccount, Gic, Stock
 import matplotlib.pyplot as plt
 
-ut.plot_growth(prices, 'Stock Price', s.name)
-ut.plot_growth(values, 'Account Value', s.name)
-ut.plot_growth(cash, f'Cash from {s.name}', s.name)
 
-plt.show()
+def CollectiveCompound(years=0, months=0, plot=True, args=[]):
+    vals = np.zeros((12 * years) + months +1)
+    if plot:
+        x = np.array([i for i in range(len(vals))])
+        if len(vals) <= 24:
+            x_lab = 'Months'
+        else:
+            x = x/12
+            x_lab = 'Years'
+    for a in args:
+        if type(a) == Account.Stock:
+            val = a.compound(years=years, months=months)[0]
+        else:
+            val = a.compound(years=years, months=months)
+        vals += val
+        if plot:
+            plt.plot(x, val, label=a.name)
+    if plot:
+        plt.plot(x, vals, label='Collective')
+        plt.legend()
+        plt.xlabel(x_lab)
+        plt.ylabel('Value ($)')
+        plt.show()
+    else:
+        return vals
+
+
+
+'''a = Account()
+b = BankAccount(balance=20000, interest_rate=0.8, name='Savings Account')
+g1 = a.Gic(balance=8000, interest_rate=3.2, maturity=5, name='Manulife GIC', is_reinvest=True)
+g2 = a.Gic(balance=5000, interest_rate=1.65, maturity=5, name='CIBC GIC', is_reinvest=True)
+s1 = a.Stock(a, name='FTS.TO', shares=110, price=50.82, dividend=1.8, annual_growth=5, volatility='med', drip=True,
+             dividend_percent_growth=7)
+s2 = a.Stock(a, name='IVV', shares=38, price=285.02, dividend=5, annual_growth=7, volatility='med', drip=True)
+
+CollectiveCompound(years=20, months=0, args=[b, g1, g2, s1, s2])
+
+# values = g.compound(years=0, months=2)
+# g.summary()'''
+
+'''import utils as ut
+import matplotlib.pyplot as plt
+
+ut.plot_growth(values, 'GIC Value', g.name)
+
+plt.show()'''
+
+'''import utils as ut
+import matplotlib.pyplot as plt
+
+for i in range(20):
+    s = a.Stock(a, name='FTS.TO', shares=150, price=30, dividend=0, annual_growth=0, volatility='med', drip=True,
+                dividend_percent_growth=0)
+    values, prices, cash = s.compound(years=20)
+    plt.plot(prices)
+
+
+plt.show()'''
