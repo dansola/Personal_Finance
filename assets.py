@@ -350,34 +350,3 @@ def CollectiveCompound(years=0, months=0, plot=True, args=[]):
 
 
 
-'''a = Account()
-b = BankAccount(balance=20000, interest_rate=0.8, name='Savings Account')
-g1 = a.Gic(balance=8000, interest_rate=3.2, maturity=5, name='Manulife GIC', is_reinvest=True)
-g2 = a.Gic(balance=5000, interest_rate=1.65, maturity=5, name='CIBC GIC', is_reinvest=True)
-s1 = a.Stock(a, name='FTS.TO', shares=110, price=50.82, dividend=1.8, annual_growth=5, volatility='med', drip=True,
-             dividend_percent_growth=7)
-s2 = a.Stock(a, name='IVV', shares=38, price=285.02, dividend=5, annual_growth=7, volatility='med', drip=True)
-
-CollectiveCompound(years=20, months=0, args=[b, g1, g2, s1, s2])
-
-# values = g.compound(years=0, months=2)
-# g.summary()'''
-
-'''import utils as ut
-import matplotlib.pyplot as plt
-
-ut.plot_growth(values, 'GIC Value', g.name)
-
-plt.show()'''
-
-'''import utils as ut
-import matplotlib.pyplot as plt
-
-for i in range(20):
-    s = a.Stock(a, name='FTS.TO', shares=150, price=30, dividend=0, annual_growth=0, volatility='med', drip=True,
-                dividend_percent_growth=0)
-    values, prices, cash = s.compound(years=20)
-    plt.plot(prices)
-
-
-plt.show()'''
