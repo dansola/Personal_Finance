@@ -17,14 +17,15 @@ Tool for calculating and forcasting personal investments and liabilities.
 - Allows for monthly deposits and withdrawals (with commission)
 
 **GIC (guaranteed investment certificate):**
--Balance is compounded annually
+- Balance is compounded annually
+- Funds can be reinvested at the end of the maturity period
+- Funds only available at the end of the maturity period.  If the funds are reinvested, they are not availabe until the next maturity.
+
 
 ## Other Features
 
 **Plotting (utils):**
 - Plot value of a single asset
-- Funds can be reinvested at the end of the maturity period
-- Funds only available at the end of the maturity period.  If the funds are reinvested, they are not availabe until the next maturity.
 
 **Collective Compound:**
 - Allows for multiple assets (currently bank accounts, stocks, and GICs) to be compounded at the same time and combined to a collective portfolio value.
